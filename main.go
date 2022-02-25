@@ -5,11 +5,16 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/sub-rat/MyNewContactbook/controllers"
+	"github.com/sub-rat/MyNewContactbook/models"
 )
 
 func main() {
 	fmt.Println("Starting ContactBook Api")
 	r := gin.Default()
+
+	//Database connection
+	models.ConnectDatabase()
+
 	initRoutes(r)
 	// Starting Server, shortcut of http.ListenAndServer
 	r.Run()

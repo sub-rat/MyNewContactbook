@@ -17,24 +17,24 @@ func GetAllContacts(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "getting all contacts",
-		"data": []models.Contact{
-			{
-				ID:        1,
-				FirstName: "Ram",
-				LastName:  "Sharma",
-				Phone:     []models.Phone{},
-			},
-			{
-				ID:        2,
-				FirstName: "Hari",
-				LastName:  "Sharma",
-				Phone: []models.Phone{
-					{
-						PhoneType:   "Mobile",
-						PhoneNumber: "9090909090",
-					},
-				},
-			},
+		"data":    []models.Contact{
+			// {
+			// 	ID:        1,
+			// 	FirstName: "Ram",
+			// 	LastName:  "Sharma",
+			// 	// Phone:     []models.Phone{},
+			// },
+			// {
+			// 	ID:        2,
+			// 	FirstName: "Hari",
+			// 	LastName:  "Sharma",
+			// Phone: []models.Phone{
+			// 	{
+			// 		PhoneType:   "Mobile",
+			// 		PhoneNumber: "9090909090",
+			// 	},
+			// },
+			// },
 		},
 	})
 }
