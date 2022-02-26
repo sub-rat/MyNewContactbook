@@ -3,6 +3,7 @@ package controllers
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sub-rat/MyNewContactbook/models"
@@ -11,31 +12,43 @@ import (
 func GetAllContacts(c *gin.Context) {
 	first_name := c.Query("first_name")
 	last_name := c.Query("last_name")
+	page, err := strconv.Atoi(c.Query("page"))
+	if err != nil {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	sizeString := c.Query("size")
+	limit, err := strconv.Atoi(sizeString)
+	if err != nil {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
 	// TODO fetch contact list from database where first_name = "ram"
 	// select * from contacts where first_name = {first_name} and last_name = {last_name}
 	fmt.Println(first_name, last_name)
+	var contactList []models.Contact
 
+	filterString := "%" + first_name + "%"
+	fmt.Println(filterString)
+	query := models.DB.Debug().Model(&models.Contact{})
+	if filterString != "" {
+		query.Where("first_name like ? ", filterString)
+	}
+	query.Limit(limit).Offset(limit * page)
+	err = query.Find(&contactList).Error
+	if err != nil {
+		c.JSON(http.StatusMethodNotAllowed, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
 	c.JSON(http.StatusOK, gin.H{
 		"message": "getting all contacts",
-		"data":    []models.Contact{
-			// {
-			// 	ID:        1,
-			// 	FirstName: "Ram",
-			// 	LastName:  "Sharma",
-			// 	// Phone:     []models.Phone{},
-			// },
-			// {
-			// 	ID:        2,
-			// 	FirstName: "Hari",
-			// 	LastName:  "Sharma",
-			// Phone: []models.Phone{
-			// 	{
-			// 		PhoneType:   "Mobile",
-			// 		PhoneNumber: "9090909090",
-			// 	},
-			// },
-			// },
-		},
+		"data":    contactList,
 	})
 }
 
@@ -47,9 +60,15 @@ func CreateContact(c *gin.Context) {
 		})
 		return
 	}
-	// TODO save contact to database
-	contact.ID = 5
 
+	err := models.DB.Model(&models.Contact{}).Create(&contact).Error
+
+	if err != nil {
+		c.JSON(http.StatusMethodNotAllowed, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Create contact Successfully",
 		"data":    contact,
