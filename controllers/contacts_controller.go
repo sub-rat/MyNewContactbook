@@ -3,43 +3,34 @@ package controllers
 import (
 	"fmt"
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sub-rat/MyNewContactbook/models"
+	"github.com/sub-rat/MyNewContactbook/utils"
 )
 
 func GetAllContacts(c *gin.Context) {
 	first_name := c.Query("first_name")
 	last_name := c.Query("last_name")
-	page, err := strconv.Atoi(c.Query("page"))
-	if err != nil {
-		c.JSON(http.StatusUnprocessableEntity, gin.H{
-			"error": err.Error(),
-		})
-		return
-	}
-	sizeString := c.Query("size")
-	limit, err := strconv.Atoi(sizeString)
-	if err != nil {
-		c.JSON(http.StatusUnprocessableEntity, gin.H{
-			"error": err.Error(),
-		})
-		return
-	}
-	// TODO fetch contact list from database where first_name = "ram"
-	// select * from contacts where first_name = {first_name} and last_name = {last_name}
+
 	fmt.Println(first_name, last_name)
 	var contactList []models.Contact
-
-	filterString := "%" + first_name + "%"
-	fmt.Println(filterString)
-	query := models.DB.Debug().Model(&models.Contact{})
-	if filterString != "" {
-		query.Where("first_name like ? ", filterString)
+	page, limit, err := utils.Pagination(c)
+	fmt.Println(page, limit)
+	if err != nil {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": err.Error(),
+		})
+		return
 	}
-	query.Limit(limit).Offset(limit * page)
-	err = query.Find(&contactList).Error
+	err = models.DB.
+		Debug().
+		Model(&models.Contact{}).
+		Where("first_name like ? ", "%"+first_name+"%").
+		Limit(limit).
+		Offset(limit * page).
+		Find(&contactList).
+		Error
 	if err != nil {
 		c.JSON(http.StatusMethodNotAllowed, gin.H{
 			"error": err.Error(),
@@ -61,7 +52,11 @@ func CreateContact(c *gin.Context) {
 		return
 	}
 
-	err := models.DB.Model(&models.Contact{}).Create(&contact).Error
+	err := models.DB.
+		Debug().
+		Model(&models.Contact{}).
+		Create(&contact).
+		Error
 
 	if err != nil {
 		c.JSON(http.StatusMethodNotAllowed, gin.H{
@@ -81,19 +76,36 @@ func UpdateContact(c *gin.Context) {
 	})
 }
 
-func DeleteContacts(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{
-		"message": "Delete contact comming soon",
+func DeleteContactsById(c *gin.Context) {
+	id := c.Params.ByName("id")
+	// delete recored with id
+	err := models.DB.
+		Debug().
+		Delete(&models.Contact{}, id).
+		Error
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	c.JSON(http.StatusNoContent, gin.H{
+		"message": "Successfully Deleted",
 	})
 }
 
 func GetContactById(c *gin.Context) {
-	id := c.Params.ByName("id")
-	// Atoi
-	// Query in database to fetch contact by id
-	// select * from contacts where id = {id}
+	contactId := c.Params.ByName("id")
+	contact := models.Contact{}
+	err := models.DB.Debug().Model(&models.Contact{}).First(&contact, contactId).Error
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Get Contact By Id ",
-		"data":    id,
+		"data":    contact,
 	})
 }

@@ -28,8 +28,9 @@ func initRoutes(r *gin.Engine) {
 	// contact endpoints
 	r.GET("/contacts", controllers.GetAllContacts)
 	r.POST("/contacts", controllers.CreateContact)
-	r.DELETE("/contacts", controllers.DeleteContacts)
+
 	r.PUT("/contacts", controllers.UpdateContact)
 
 	r.GET("/contacts/:id", controllers.GetContactById)
+	r.DELETE("/contacts/:id", controllers.DeleteContactsById)
 }
