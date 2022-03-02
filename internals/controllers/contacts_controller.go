@@ -5,8 +5,8 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/sub-rat/MyNewContactbook/models"
-	"github.com/sub-rat/MyNewContactbook/utils"
+	"github.com/sub-rat/MyNewContactbook/internals/models"
+	"github.com/sub-rat/MyNewContactbook/internals/utils"
 )
 
 func GetAllContacts(c *gin.Context) {
@@ -26,6 +26,7 @@ func GetAllContacts(c *gin.Context) {
 	err = models.DB.
 		Debug().
 		Model(&models.Contact{}).
+		Preload("Address").Preload("Phone").Preload("Languages").
 		Where("first_name like ? ", "%"+first_name+"%").
 		Limit(limit).
 		Offset(limit * page).
@@ -70,9 +71,38 @@ func CreateContact(c *gin.Context) {
 	})
 }
 
-func UpdateContact(c *gin.Context) {
+func UpdateContactById(c *gin.Context) {
+	contact := models.Contact{}
+	if err := models.DB.Where("id = ?", c.Params.ByName("id")).First(&contact).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "Record not found",
+		})
+		return
+	}
+	if err := c.BindJSON(&contact); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	// Updating contact whoose value is only changed
+	// update := make(map[string]interface{})
+	// if contactUpdate.FirstName != "" && contactFromDatabase.FirstName != contactUpdate.FirstName {
+	// 	update["first_name"] = contactUpdate.FirstName
+	// }
+	err := models.DB.Debug().
+		Model(&models.Contact{}).
+		Where("id = ?", c.Params.ByName("id")).
+		Updates(map[string]interface{}{"first_name": contact.FirstName, "email": contact.Email}).Error
+	if err != nil {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Update contact comming soon",
+		"message": "Update the contact",
+		"data":    contact,
 	})
 }
 
@@ -97,7 +127,10 @@ func DeleteContactsById(c *gin.Context) {
 func GetContactById(c *gin.Context) {
 	contactId := c.Params.ByName("id")
 	contact := models.Contact{}
-	err := models.DB.Debug().Model(&models.Contact{}).First(&contact, contactId).Error
+	err := models.DB.Debug().
+		Model(&models.Contact{}).
+		Preload("Address").Preload("Phone").Preload("Languages").
+		First(&contact, contactId).Error
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
