@@ -2,8 +2,8 @@ package server
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/sub-rat/MyNewContactbook/internals/controllers"
-	"github.com/sub-rat/MyNewContactbook/internals/models"
+	"github.com/sub-rat/MyNewContactbook/internals/contact"
+	dbconnect "github.com/sub-rat/MyNewContactbook/pkg"
 	"gorm.io/gorm"
 )
 
@@ -15,7 +15,7 @@ type server struct {
 func GetServer() *server {
 	return &server{
 		C:  gin.Default(),
-		DB: models.ConnectDatabase(),
+		DB: dbconnect.ConnectDatabase(),
 	}
 }
 
@@ -27,14 +27,7 @@ func (s *server) Run() {
 func (s *server) initRoutes() {
 	// routes or Endpoints
 	r := s.C
-	r.GET("/", controllers.Welcome)
-	r.GET("/ping", controllers.Ping)
 
-	// contact endpoints
-	r.GET("/contacts", controllers.GetAllContacts)
-	r.POST("/contacts", controllers.CreateContact)
-
-	r.PUT("/contacts/:id", controllers.UpdateContactById)
-	r.GET("/contacts/:id", controllers.GetContactById)
-	r.DELETE("/contacts/:id", controllers.DeleteContactsById)
+	// Contact Routes
+	contact.RegisterRoutes(r, contact.NewService(contact.NewRepository(*s.DB)))
 }

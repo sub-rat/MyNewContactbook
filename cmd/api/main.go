@@ -17,9 +17,5 @@ func main() {
 	}
 	fmt.Println(os.Getenv("DB_NAME"))
 	srv := server.GetServer()
-	// srv.C = gin.Default()
-	// //Database connection
-	// srv.DB = models.ConnectDatabase()
-	// Starting Server, shortcut of http.ListenAndServer
 	srv.Run()
 }
