@@ -2,7 +2,8 @@ package server
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/sub-rat/MyNewContactbook/internals/contact"
+	contact2 "github.com/sub-rat/MyNewContactbook/internals/features/contact"
+	user2 "github.com/sub-rat/MyNewContactbook/internals/features/user"
 	"github.com/sub-rat/MyNewContactbook/pkg/db/postgres"
 	"gorm.io/gorm"
 	"log"
@@ -30,5 +31,8 @@ func (s *server) initRoutes() {
 	r := s.C
 
 	// Contact Routes
-	contact.RegisterRoutes(r, contact.NewService(contact.NewRepository(*s.DB)))
+	contact2.RegisterRoutes(r, contact2.NewService(contact2.NewRepository(*s.DB)))
+
+	user2.RegisterRoutes(r, user2.NewService(user2.NewRepository(*s.DB)))
+
 }
