@@ -1,11 +1,11 @@
 package contact
 
 import (
+	"github.com/sub-rat/MyNewContactbook/pkg/utils"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/sub-rat/MyNewContactbook/internals/utils"
 )
 
 type resource struct {

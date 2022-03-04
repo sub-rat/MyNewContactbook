@@ -1,4 +1,4 @@
-package dbconnect
+package postgres
 
 import (
 	"fmt"

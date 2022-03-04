@@ -43,6 +43,7 @@ func (service *service) Create(req *Contact) (Contact, error) {
 	}
 	return *req, nil
 }
+
 func (service *service) Update(id uint, update *Contact) (Contact, error) {
 	err := service.repo.Update(id, update)
 	if err != nil {

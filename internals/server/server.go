@@ -3,8 +3,9 @@ package server
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/sub-rat/MyNewContactbook/internals/contact"
-	dbconnect "github.com/sub-rat/MyNewContactbook/pkg"
+	"github.com/sub-rat/MyNewContactbook/pkg/db/postgres"
 	"gorm.io/gorm"
+	"log"
 )
 
 type server struct {
@@ -15,13 +16,13 @@ type server struct {
 func GetServer() *server {
 	return &server{
 		C:  gin.Default(),
-		DB: dbconnect.ConnectDatabase(),
+		DB: postgres.ConnectDatabase(),
 	}
 }
 
 func (s *server) Run() {
 	s.initRoutes()
-	s.C.Run()
+	log.Fatal(s.C.Run())
 }
 
 func (s *server) initRoutes() {
