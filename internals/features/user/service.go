@@ -36,7 +36,10 @@ func (service *service) Get(id uint) (User, error) {
 }
 
 func (service *service) Create(req *User) (User, error) {
-	//validation
+	//ToDo validation
+
+	//ToDo password hash generate
+	//ToDo bcrypt
 	err := service.repo.Create(req)
 	if err != nil {
 		return User{}, err

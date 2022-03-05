@@ -1,6 +1,7 @@
 package user
 
 import (
+	"github.com/sub-rat/MyNewContactbook/internals/middleware"
 	"github.com/sub-rat/MyNewContactbook/pkg/utils"
 	"net/http"
 	"strconv"
@@ -14,11 +15,12 @@ type resource struct {
 
 func RegisterRoutes(r *gin.Engine, service ServiceInterface) {
 	resource := &resource{service}
-	r.GET("/users", resource.Query)
+	r.POST("/login", resource.GetLogin)
+	r.GET("/users", middleware.CheckToken, resource.Query)
 	r.POST("/users", resource.Create)
-	r.PUT("/users/:id", resource.Update)
-	r.GET("/users/:id", resource.Get)
-	r.DELETE("/users/:id", resource.Delete)
+	r.PUT("/users/:id", middleware.CheckToken, resource.Update)
+	r.GET("/users/:id", middleware.CheckToken, resource.Get)
+	r.DELETE("/users/:id", middleware.CheckToken, resource.Delete)
 }
 
 func (resource *resource) Query(c *gin.Context) {
@@ -96,8 +98,15 @@ func (resource *resource) Update(c *gin.Context) {
 
 func (resource *resource) Delete(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Params.ByName("id"))
-	// delete recored with id
-	err := resource.service.Delete(uint(id))
+	_, err := resource.service.Get(uint(id))
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "Record not found",
+		})
+		return
+	}
+
+	err = resource.service.Delete(uint(id))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
@@ -122,4 +131,29 @@ func (resource *resource) Get(c *gin.Context) {
 		"message": "Get User By Id ",
 		"data":    user,
 	})
+}
+
+func (resource *resource) GetLogin(c *gin.Context) {
+	user := User{}
+	if err := c.BindJSON(&user); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	// ToDo find the user with email
+
+	// ToDo compare password is matching or not
+	c.JSON(http.StatusOK, gin.H{
+		"Token": "ABD!23@@#",
+		//"user": user,
+	})
+	//user, err := resource.service.Get(uint(id))
+	//if err != nil {
+	//	c.JSON(http.StatusInternalServerError, gin.H{
+	//		"error": err.Error(),
+	//	})
+	//	return
+	//}
+
 }
