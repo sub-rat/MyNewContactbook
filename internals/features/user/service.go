@@ -1,6 +1,7 @@
 package user
 
 import (
+	"errors"
 	"github.com/sub-rat/MyNewContactbook/internals/models"
 	"github.com/sub-rat/MyNewContactbook/pkg/utils"
 )
@@ -39,6 +40,10 @@ func (service *service) Get(id uint) (User, error) {
 }
 
 func (service *service) Create(req *User) (User, error) {
+	// Todo Validate the data, name validation, email validation, password length, password strength
+	if req.FullName == "" {
+		return User{}, errors.New(" Fullname required ")
+	}
 	hashedPassword, err := utils.HashPassword(req.Password)
 	if err != nil {
 		return User{}, err
@@ -52,6 +57,8 @@ func (service *service) Create(req *User) (User, error) {
 }
 
 func (service *service) Update(id uint, update *User) (User, error) {
+	// ToDo Check for only updated value
+	// create map of updated value and send
 	err := service.repo.Update(id, update)
 	if err != nil {
 		return User{}, err

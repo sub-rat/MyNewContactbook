@@ -10,6 +10,9 @@ type RepositoryInterface interface {
 	Delete(id uint) error
 }
 
+//ToDO change the update func to specific update map only
+// Update(id uint, update map[string]interface{}) error
+
 type repository struct {
 	db gorm.DB
 }
