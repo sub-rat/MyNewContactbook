@@ -31,7 +31,7 @@ func (resource *resource) Query(c *gin.Context) {
 		})
 		return
 	}
-	userList, err := resource.service.Query(page*limit, limit, c.Query("first_name"))
+	userList, err := resource.service.Query(page*limit, limit, c.Query("q"), "")
 	if err != nil {
 		c.JSON(http.StatusMethodNotAllowed, gin.H{
 			"error": err.Error(),
@@ -141,19 +141,30 @@ func (resource *resource) GetLogin(c *gin.Context) {
 		})
 		return
 	}
-	// ToDo find the user with email
+	q := user.Email
+	qType := "email"
+	if user.UserName != "" {
+		q = user.UserName
+		qType = "user_name"
+	}
+	userList, err := resource.service.Query(0, 1, q, qType)
+	if len(userList) <= 0 || err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "User Not Found",
+		})
+		return
+	}
+	dbUser := userList[0]
+	if !utils.CheckPassword(user.Password, dbUser.Password) {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Password Mismatch",
+		})
+		return
+	}
 
-	// ToDo compare password is matching or not
 	c.JSON(http.StatusOK, gin.H{
-		"Token": "ABD!23@@#",
-		//"user": user,
+		"Token": utils.GenerateJwtToken(dbUser.ID),
+		"user":  dbUser,
 	})
-	//user, err := resource.service.Get(uint(id))
-	//if err != nil {
-	//	c.JSON(http.StatusInternalServerError, gin.H{
-	//		"error": err.Error(),
-	//	})
-	//	return
-	//}
 
 }

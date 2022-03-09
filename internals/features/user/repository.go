@@ -3,7 +3,7 @@ package user
 import "gorm.io/gorm"
 
 type RepositoryInterface interface {
-	Query(offset, limit int, query string) ([]User, error)
+	Query(offset, limit int, query, fieldType string) ([]User, error)
 	Get(id uint) (User, error)
 	Create(req *User) error
 	Update(id uint, update *User) error
@@ -18,11 +18,18 @@ func NewRepository(db gorm.DB) RepositoryInterface {
 	return &repository{db}
 }
 
-func (repository *repository) Query(offset, limit int, query string) ([]User, error) {
+func (repository *repository) Query(offset, limit int, query, fieldType string) ([]User, error) {
 	var dataList []User
-	err := repository.db.Debug().Model(&User{}).
-		Where("full_name like ? ", "%"+query+"%").
-		Limit(limit).Offset(offset).
+	dbQuery := repository.db.Debug().Model(&User{})
+	if fieldType == "email" {
+		dbQuery.Where("email = ?", query)
+	} else if fieldType == "user_name" {
+		dbQuery.Where("user_name = ?", query)
+	} else {
+		dbQuery.Where("full_name like ? or user_name like ? or email like ?", "%"+query+"%", "%"+query+"%", "%"+query+"%")
+	}
+
+	err := dbQuery.Limit(limit).Offset(offset).
 		Find(&dataList).
 		Error
 	return dataList, err

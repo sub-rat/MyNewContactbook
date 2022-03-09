@@ -25,6 +25,12 @@ func RegisterRoutes(r *gin.Engine, service ServiceInterface) {
 
 func (resource *resource) Query(c *gin.Context) {
 	userId, _ := strconv.Atoi(c.Params.ByName("id"))
+
+	cur := c.Value("id")
+	fmt.Println("currentUser = ", cur)
+	currentUser, ok := cur.(int)
+	fmt.Printf("%d, %t, Type = %v", currentUser, ok, currentUser)
+	// ToDo Verify the current user and user id in url and return contact data
 	page, limit, err := utils.Pagination(c)
 	if err != nil {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{

@@ -1,9 +1,12 @@
 package user
 
-import "github.com/sub-rat/MyNewContactbook/internals/models"
+import (
+	"github.com/sub-rat/MyNewContactbook/internals/models"
+	"github.com/sub-rat/MyNewContactbook/pkg/utils"
+)
 
 type ServiceInterface interface {
-	Query(offset, limit int, query string) ([]User, error)
+	Query(offset, limit int, query string, fieldType string) ([]User, error)
 	Get(id uint) (User, error)
 	Create(req *User) (User, error)
 	Update(id uint, update *User) (User, error)
@@ -22,8 +25,8 @@ func NewService(repo RepositoryInterface) ServiceInterface {
 	return &service{repo}
 }
 
-func (service *service) Query(offset, limit int, query string) ([]User, error) {
-	dataList, err := service.repo.Query(offset, limit, query)
+func (service *service) Query(offset, limit int, query string, fieldType string) ([]User, error) {
+	dataList, err := service.repo.Query(offset, limit, query, fieldType)
 	if err != nil {
 		return []User{}, err
 	}
@@ -36,11 +39,12 @@ func (service *service) Get(id uint) (User, error) {
 }
 
 func (service *service) Create(req *User) (User, error) {
-	//ToDo validation
-
-	//ToDo password hash generate
-	//ToDo bcrypt
-	err := service.repo.Create(req)
+	hashedPassword, err := utils.HashPassword(req.Password)
+	if err != nil {
+		return User{}, err
+	}
+	req.Password = hashedPassword
+	err = service.repo.Create(req)
 	if err != nil {
 		return User{}, err
 	}
