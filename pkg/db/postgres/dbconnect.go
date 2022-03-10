@@ -9,19 +9,23 @@ import (
 	"gorm.io/gorm"
 )
 
-// var DB *gorm.DB
-
 func ConnectDatabase() *gorm.DB {
-	dsn := fmt.Sprintf("host=localhost user=postgres password=password dbname=%s port=5432 sslmode=disable TimeZone=Asia/Shanghai", os.Getenv("DB_NAME"))
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Shanghai",
+		os.Getenv("DB_HOST"), os.Getenv("DB_USERNAME"), os.Getenv("DB_PASSWORD"),
+		os.Getenv("DB_NAME"), os.Getenv("DB_PORT"),
+	)
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		panic(err)
 	}
-	db.AutoMigrate(
+	err = db.AutoMigrate(
 		&models.Contact{},
 		&models.Address{},
 		&models.Phone{},
+		&models.User{},
 	)
-	// DB = db
+	if err != nil {
+		panic(err)
+	}
 	return db
 }

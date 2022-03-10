@@ -3,7 +3,7 @@ package contact
 import "github.com/sub-rat/MyNewContactbook/internals/models"
 
 type ServiceInterface interface {
-	Query(offset, limit int, query string) ([]Contact, error)
+	Query(offset, limit int, query string, userId int) ([]Contact, error)
 	Get(id uint) (Contact, error)
 	Create(req *Contact) (Contact, error)
 	Update(id uint, update *Contact) (Contact, error)
@@ -22,8 +22,8 @@ func NewService(repo RepositoryInterface) ServiceInterface {
 	return &service{repo}
 }
 
-func (service *service) Query(offset, limit int, query string) ([]Contact, error) {
-	dataList, err := service.repo.Query(offset, limit, query)
+func (service *service) Query(offset, limit int, query string, userId int) ([]Contact, error) {
+	dataList, err := service.repo.Query(offset, limit, query, userId)
 	if err != nil {
 		return []Contact{}, err
 	}

@@ -3,7 +3,7 @@ package contact
 import "gorm.io/gorm"
 
 type RepositoryInterface interface {
-	Query(offset, limit int, query string) ([]Contact, error)
+	Query(offset, limit int, query string, userId int) ([]Contact, error)
 	Get(id uint) (Contact, error)
 	Create(req *Contact) error
 	Update(id uint, update *Contact) error
@@ -18,11 +18,12 @@ func NewRepository(db gorm.DB) RepositoryInterface {
 	return &repository{db}
 }
 
-func (repository *repository) Query(offset, limit int, query string) ([]Contact, error) {
+func (repository *repository) Query(offset, limit int, query string, userId int) ([]Contact, error) {
 	var dataList []Contact
 	err := repository.db.Debug().Model(&Contact{}).
 		Preload("Address").Preload("Phone").Preload("Languages").
 		Where("first_name like ? ", "%"+query+"%").
+		Where("user_id = ?", userId).
 		Limit(limit).Offset(offset).
 		Find(&dataList).
 		Error

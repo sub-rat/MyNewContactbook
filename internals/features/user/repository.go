@@ -1,0 +1,61 @@
+package user
+
+import "gorm.io/gorm"
+
+type RepositoryInterface interface {
+	Query(offset, limit int, query, fieldType string) ([]User, error)
+	Get(id uint) (User, error)
+	Create(req *User) error
+	Update(id uint, update *User) error
+	Delete(id uint) error
+}
+
+//ToDO change the update func to specific update map only
+// Update(id uint, update map[string]interface{}) error
+
+type repository struct {
+	db gorm.DB
+}
+
+func NewRepository(db gorm.DB) RepositoryInterface {
+	return &repository{db}
+}
+
+func (repository *repository) Query(offset, limit int, query, fieldType string) ([]User, error) {
+	var dataList []User
+	dbQuery := repository.db.Debug().Model(&User{})
+	if fieldType == "email" {
+		dbQuery.Where("email = ?", query)
+	} else if fieldType == "user_name" {
+		dbQuery.Where("user_name = ?", query)
+	} else {
+		dbQuery.Where("full_name like ? or user_name like ? or email like ?", "%"+query+"%", "%"+query+"%", "%"+query+"%")
+	}
+
+	err := dbQuery.Limit(limit).Offset(offset).
+		Find(&dataList).
+		Error
+	return dataList, err
+}
+
+func (repository *repository) Get(id uint) (User, error) {
+	user := User{}
+	err := repository.db.Debug().
+		Model(&User{}).
+		Preload("Contact").
+		First(&user, id).Error
+	return user, err
+}
+
+func (repository *repository) Create(req *User) error {
+	return repository.db.Debug().Model(&User{}).Create(&req).Error
+}
+
+func (repository *repository) Update(id uint, update *User) error {
+	return repository.db.Debug().Model(&User{}).Where("id = ?", id).
+		Updates(&update).Error
+}
+
+func (repository *repository) Delete(id uint) error {
+	return repository.db.Debug().Delete(&User{}, id).Error
+}

@@ -22,9 +22,10 @@ type Contact struct {
 	FirstName  string     `json:"first_name"`
 	LastName   string     `json:"last_name"`
 	Email      string     `json:"email"`
-	Phone      []Phone    `json:"phone"`
-	Address    Address    `json:"address"`
+	Phone      []Phone    `json:"phone" gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Address    Address    `json:"address" gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	Languages  []Language `gorm:"many2many:contact_languages;"`
+	UserID     uint       `json:"user_id"`
 }
 
 type Language struct {
