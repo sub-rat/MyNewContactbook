@@ -15,11 +15,12 @@ type resource struct {
 
 func RegisterRoutes(r *gin.Engine, service ServiceInterface) {
 	resource := &resource{service}
+	r.GET("/login-from", resource.GetLoginForm)
 	r.POST("/login", resource.GetLogin)
 	r.GET("/users", middleware.CheckToken, resource.Query)
 	r.POST("/users", resource.Create)
 	r.PUT("/users/:id", middleware.CheckToken, resource.Update)
-	r.GET("/users/:id", middleware.CheckToken, resource.Get)
+	r.GET("/users/:id", resource.Get)
 	r.DELETE("/users/:id", middleware.CheckToken, resource.Delete)
 }
 
@@ -127,15 +128,16 @@ func (resource *resource) Get(c *gin.Context) {
 		})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{
-		"message": "Get User By Id ",
-		"data":    user,
-	})
+	//c.JSON(http.StatusOK, gin.H{
+	//	"message": "Get User By Id ",
+	//	"data":    user,
+	//})
+	c.HTML(http.StatusOK, "users.html", user)
 }
 
 func (resource *resource) GetLogin(c *gin.Context) {
 	user := User{}
-	if err := c.BindJSON(&user); err != nil {
+	if err := c.Bind(&user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
 		})
@@ -162,9 +164,16 @@ func (resource *resource) GetLogin(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"Token": utils.GenerateJwtToken(dbUser.ID),
-		"user":  dbUser,
-	})
+	//c.JSON(http.StatusOK, gin.H{
+	//	"Token": utils.GenerateJwtToken(dbUser.ID),
+	//	"user":  dbUser,
+	//})
+	c.HTML(http.StatusOK, "user.html", user)
 
+}
+
+func (resource *resource) GetLoginForm(context *gin.Context) {
+	context.HTML(http.StatusOK, "login.html", gin.H{
+		"title": "Main website",
+	})
 }
